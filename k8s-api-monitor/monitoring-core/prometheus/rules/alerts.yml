@@ -1,0 +1,87 @@
+groups:
+- name: kubernetes-resources
+  rules:
+  - alert: NodeCPUUsageHigh
+    expr: (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "节点CPU使用率高 ({{ $labels.instance }})"
+      description: "节点 {{ $labels.instance }} CPU使用率超过80%，当前值: {{ $value }}%"
+
+  - alert: NodeMemoryUsageHigh
+    expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "节点内存使用率高 ({{ $labels.instance }})"
+      description: "节点 {{ $labels.instance }} 内存使用率超过85%，当前值: {{ $value }}%"
+
+  - alert: NodeDiskUsageHigh
+    expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "节点磁盘使用率高 ({{ $labels.instance }})"
+      description: "节点 {{ $labels.instance }} 磁盘使用率超过85%，当前值: {{ $value }}%"
+
+  - alert: NodeNetworkErrorsHigh
+    expr: rate(node_network_transmit_errs_total[5m]) + rate(node_network_receive_errs_total[5m]) > 10
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "节点网络错误率高 ({{ $labels.instance }})"
+      description: "节点 {{ $labels.instance }} 网络错误率超过阈值，当前值: {{ $value }} 错误/秒"
+
+- name: kubernetes-containers
+  rules:
+  - alert: ContainerCPUUsageHigh
+    expr: sum(rate(container_cpu_usage_seconds_total{container!=""}[5m])) by (pod, namespace, container) / sum(container_spec_cpu_quota{container!=""} / container_spec_cpu_period{container!=""}) by (pod, namespace, container) * 100 > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "容器CPU使用率高 ({{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }})"
+      description: "容器 {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} CPU使用率超过80%，当前值: {{ $value }}%"
+
+  - alert: ContainerMemoryUsageHigh
+    expr: sum(container_memory_working_set_bytes{container!=""}) by (pod, namespace, container) / sum(container_spec_memory_limit_bytes{container!=""}) by (pod, namespace, container) * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "容器内存使用率高 ({{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }})"
+      description: "容器 {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} 内存使用率超过85%，当前值: {{ $value }}%"
+
+  - alert: ContainerRestartFrequent
+    expr: increase(kube_pod_container_status_restarts_total[1h]) > 5
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "容器频繁重启 ({{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }})"
+      description: "容器 {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} 在过去1小时内重启超过5次，当前值: {{ $value }}次"
+
+- name: kubernetes-api
+  rules:
+  - alert: APIServerErrorsHigh
+    expr: sum(rate(apiserver_request_total{code=~"5.."}[5m])) / sum(rate(apiserver_request_total[5m])) * 100 > 5
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "API服务器错误率高"
+      description: "Kubernetes API服务器错误率超过5%，当前值: {{ $value }}%"
+
+  - alert: APIServerLatencyHigh
+    expr: histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket[5m])) by (resource, verb, le)) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "API服务器延迟高 ({{ $labels.resource }}/{{ $labels.verb }})"
+      description: "Kubernetes API服务器 {{ $labels.resource }}/{{ $labels.verb }} 请求的99%分位延迟超过1秒，当前值: {{ $value }}秒"
