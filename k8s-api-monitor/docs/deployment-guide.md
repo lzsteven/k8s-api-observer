@@ -161,15 +161,41 @@ docker push <your-registry>/management-portal:latest
 ### 1. 部署 Prometheus Operator
 
 ```bash
-# 添加 Helm 仓库
+# 安装 Prometheus Operator
+# 添加 Helm 仓库（如果尚未添加）
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
-# 安装 Prometheus Operator
-helm install monitoring prometheus-community/kube-prometheus-stack \
-  --namespace k8s-monitor \
-  --values monitoring-core/prometheus/values.yaml
+# 安装 Prometheus Operator 及相关组件
+helm install monitoring prometheus-community/kube-prometheus-stack --namespace k8s-monitor --create-namespace --values monitoring-core/prometheus/values.yaml --timeout 10m --wait --atomic --description "Kubernetes监控系统 - Prometheus Operator及相关组件"
+
+# 验证安装状态
+helm ls -n k8s-monitor
 ```
+
+> **注意**：在 Docker Desktop 环境中，node-exporter 可能会因为挂载问题而无法启动，错误信息为 "path / is mounted on / but it is not a shared or slave mount"。如果遇到这个问题，请确保在 `monitoring-core/prometheus/values.yaml` 文件中添加以下配置：
+> 
+> ```yaml
+> nodeExporter:
+>   enabled: true
+>   hostRootFsMount:
+>     enabled: false
+>   extraArgs:
+>     - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+>     - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+>     - --no-collector.filesystem
+>   securityContext:
+>     runAsUser: 65534
+>     runAsNonRoot: true
+>   volumes: []
+>   volumeMounts: []
+> ```
+> 
+> 然后使用以下命令更新部署：
+> 
+> ```bash
+> helm upgrade monitoring prometheus-community/kube-prometheus-stack --namespace k8s-monitor --values monitoring-core/prometheus/values.yaml
+> ```
 
 ### 2. 检查 Prometheus 组件
 

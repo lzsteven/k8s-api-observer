@@ -1,0 +1,104 @@
+# Prometheus Operator 基本配置
+global:
+  evaluation_interval: 1m
+  scrape_interval: 1m
+  scrape_timeout: 10s
+
+prometheusOperator:
+  enabled: true
+  createCustomResource: true
+
+prometheus:
+  enabled: true
+  serviceMonitor:
+    selfMonitor: true
+  prometheusSpec:
+    retention: 15d
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    retention: 120h
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+  hostRootFsMount:
+    enabled: true
+  extraArgs:
+    - --collector.cpu
+    - --collector.meminfo
+    - --collector.loadavg
+    - --collector.netstat
+    - --collector.filesystem
+  securityContext:
+    runAsUser: 65534
+    runAsNonRoot: true
+  volumes:
+    - name: root
+      hostPath:
+        path: /
+    - name: sys
+      hostPath:
+        path: /sys
+    - name: proc
+      hostPath:
+        path: /proc
+  volumeMounts:
+    - name: root
+      mountPath: /host/root
+      readOnly: true
+    - name: sys
+      mountPath: /host/sys
+      readOnly: true
+    - name: proc
+      mountPath: /host/proc
+      readOnly: true
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    general: true
+    k8s: true
+    kubeApiserver: true
+    kubePrometheusNodeAlerting: true
+    kubePrometheusNodeRecording: true
+    kubernetesAbsent: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    prometheus: true
+    prometheusOperator: true

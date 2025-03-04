@@ -217,17 +217,17 @@ docker images | grep management-portal
 
 ```bash
 # 标记镜像
-docker tag api-discovery-service:latest <your-registry>/api-discovery-service:latest
-docker tag api-gateway-service:latest <your-registry>/api-gateway-service:latest
-docker tag management-portal:latest <your-registry>/management-portal:latest
+docker tag api-discovery-service:latest wulingshu/api-discovery-service:latest
+docker tag api-gateway-service:latest wulingshu/api-gateway-service:latest
+docker tag management-portal:latest wulingshu/management-portal:latest
 
 # 登录镜像仓库
-docker login <your-registry> -u <username> -p <password>
+docker login wulingshu -u wulingshu -p 040906lzjsY!
 
 # 推送镜像
-docker push <your-registry>/api-discovery-service:latest
-docker push <your-registry>/api-gateway-service:latest
-docker push <your-registry>/management-portal:latest
+docker push wulingshu/api-discovery-service:latest
+docker push wulingshu/api-gateway-service:latest
+docker push wulingshu/management-portal:latest
 ```
 
 ## 本地测试

@@ -26,13 +26,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Application properties with sensitive information
-application-*.properties
-application-*.yml
-!application.properties
-!application.yml
-!application-example.properties
-!application-example.yml
 
 # Docker related
 .env
