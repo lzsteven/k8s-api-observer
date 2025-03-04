@@ -1,0 +1,38 @@
+# Maven target directories
+target/
+
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+log/
+logs/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Application properties with sensitive information
+application-*.properties
+application-*.yml
+!application.properties
+!application.yml
+!application-example.properties
+!application-example.yml
+
+# Docker related
+.env

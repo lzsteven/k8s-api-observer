@@ -1,7 +1,6 @@
 package com.monitor.discovery.service;
 
 import com.monitor.discovery.model.ServiceInfo;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
@@ -51,9 +50,9 @@ public class KubernetesService {
      */
     public void startWatchingServices() {
         logger.info("开始监听Kubernetes服务变化");
-        Watch watch = kubernetesClient.services().inAnyNamespace().watch(new Watcher<Service>() {
+        Watch watch = kubernetesClient.services().inAnyNamespace().watch(new Watcher<io.fabric8.kubernetes.api.model.Service>() {
             @Override
-            public void eventReceived(Action action, Service service) {
+            public void eventReceived(Action action, io.fabric8.kubernetes.api.model.Service service) {
                 handleServiceEvent(action, service);
             }
 
@@ -89,7 +88,7 @@ public class KubernetesService {
     /**
      * 处理服务事件
      */
-    private void handleServiceEvent(Watcher.Action action, Service service) {
+    private void handleServiceEvent(Watcher.Action action, io.fabric8.kubernetes.api.model.Service service) {
         String serviceName = service.getMetadata().getName();
         String namespace = service.getMetadata().getNamespace();
         logger.info("接收到服务事件: {} {}/{}", action, namespace, serviceName);
@@ -112,7 +111,7 @@ public class KubernetesService {
     /**
      * 将Kubernetes Service转换为ServiceInfo
      */
-    private ServiceInfo convertToServiceInfo(Service service) {
+    private ServiceInfo convertToServiceInfo(io.fabric8.kubernetes.api.model.Service service) {
         ServiceInfo serviceInfo = new ServiceInfo();
         serviceInfo.setId(service.getMetadata().getUid());
         serviceInfo.setName(service.getMetadata().getName());
@@ -147,7 +146,7 @@ public class KubernetesService {
     /**
      * 获取所有服务
      */
-    public List<Service> getAllServices() {
+    public List<io.fabric8.kubernetes.api.model.Service> getAllServices() {
         return kubernetesClient.services().inAnyNamespace().list().getItems();
     }
 }

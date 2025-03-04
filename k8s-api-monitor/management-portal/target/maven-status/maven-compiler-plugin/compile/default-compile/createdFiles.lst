@@ -1,0 +1,4 @@
+com\monitor\portal\service\ContainerService.class
+com\monitor\portal\service\MonitoringService.class
+com\monitor\portal\ManagementPortalApplication.class
+com\monitor\portal\service\ApiDocService.class

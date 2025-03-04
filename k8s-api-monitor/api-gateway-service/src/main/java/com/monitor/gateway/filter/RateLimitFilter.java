@@ -45,7 +45,12 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
                     Arrays.asList(String.valueOf(10), // 最大请求数
                                  String.valueOf(60), // 时间窗口（秒）
                                  String.valueOf(Instant.now().getEpochSecond()))) // 当前时间
+                    .next() // 将Flux转换为Mono
                     .flatMap(response -> {
+                        if (response == null) {
+                            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+                            return exchange.getResponse().setComplete();
+                        }
                         if (response == 0L) {
                             // 超过限流阈值
                             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);

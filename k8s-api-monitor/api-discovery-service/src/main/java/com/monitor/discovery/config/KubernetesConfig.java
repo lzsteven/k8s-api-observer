@@ -26,8 +26,7 @@ public class KubernetesConfig {
         Config config = new ConfigBuilder()
                 .withMasterUrl(masterUrl)
                 .withNamespace(namespace)
-                // 使用服务账号进行认证
-                .withServiceAccount(true)
+                // 使用服务账号的默认配置
                 .build();
 
         return new DefaultKubernetesClient(config);

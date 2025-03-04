@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  api-discovery:
+    build:
+      context: ./api-discovery-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - KUBERNETES_MASTER=http://host.docker.internal:8001
+    depends_on:
+      - prometheus
+
+  api-gateway:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+      - api-discovery
+
+  management-portal:
+    build:
+      context: ./management-portal
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - API_GATEWAY_URL=http://api-gateway:8080
+    depends_on:
+      - api-gateway
+
+  prometheus:
+    image: prom/prometheus:v2.37.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring-core/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring-core/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+
+  redis:
+    image: redis:6.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  redis_data:
